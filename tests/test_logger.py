@@ -14,4 +14,4 @@ class TestLogger():
         messsage = 'Test message'
         logger.add(messsage)
         captured = capsys.readouterr()
-        assert captured.out == messsage + '1\n'
+        assert captured.out == messsage + '\n'
