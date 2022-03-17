@@ -1,4 +1,4 @@
-name: Lint
+name: Lint and tests
 
 on:
   pull_request:
@@ -23,3 +23,7 @@ jobs:
     - name: Flake8 checkout
       run: |
         flake8
+
+    - name: Pytest checkout
+      run: |
+        pytest
