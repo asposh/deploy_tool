@@ -59,8 +59,10 @@ class DeployTool:
     def build_config(self, src: str, dest: str) -> None:
         """ Build config file """
 
-        src = Macros.replace(src, self.options)
-        dest = Macros.replace(dest, self.options)
+        options = self.__get_options()
+
+        src = Macros.replace(src, options)
+        dest = Macros.replace(dest, options)
 
         self.logger.add(f'Build file: {dest}')
 
@@ -89,9 +91,9 @@ class DeployTool:
             parser.add_argument('--' + opt)
         args = parser.parse_args()
 
-        options = self.__options_to_dict(args)
+        self.options = self.__options_to_dict(args)
 
-        return options
+        return self.options
 
     def __options_to_dict(self, args: argparse.Namespace) -> dict:
         """ Build dict from args """

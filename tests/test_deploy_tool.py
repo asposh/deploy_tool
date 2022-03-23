@@ -39,6 +39,12 @@ class TestDeployTool():
         deploy_tool = self.deploy_tool
         options = self.options
 
+        mocker.patch.object(
+            deploy_tool,
+            '_DeployTool__get_options',
+            return_value=options
+        )
+
         # Unknown DB type
         with pytest.raises(ValueError) as exc_info:
             deploy_tool.init_db()
@@ -48,6 +54,7 @@ class TestDeployTool():
         deploy_tool.options['db_type'] = 'pgsql'
         mocker.patch.object(DbPostgres, 'init_db', side_effect=lambda: 1)
         deploy_tool.init_db()
+        deploy_tool._DeployTool__get_options.assert_called()
         assert deploy_tool.db == 1
 
     def test_query_from_file(self, mocker) -> None:
@@ -87,6 +94,11 @@ class TestDeployTool():
 
         mocker.patch.object(deploy_tool.logger, 'add', autospec=True)
         mocker.patch.object(
+            deploy_tool,
+            '_DeployTool__get_options',
+            return_value=deploy_tool.options
+        )
+        mocker.patch.object(
             Macros,
             'replace',
             autospec=True,
@@ -106,6 +118,7 @@ class TestDeployTool():
         deploy_tool._DeployTool__make_config_file.assert_called_with(src, dest)
 
         # Fail build
+        deploy_tool._DeployTool__get_options.assert_called()
         deploy_tool._DeployTool__make_config_file = lambda x, y: 0/0
         deploy_tool.build_config(src, dest)
         deploy_tool.logger.add.assert_called_with(
