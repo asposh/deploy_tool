@@ -37,12 +37,11 @@ class DeployTool:
 
         options = self.__get_options()
 
-        if options['db_type'] == 'pgsql':
-            db = DbPostgres(options, self.logger)
+        try:
+            db = self.__db_factory(options)
             self.db = db.init_db()
-            return
-
-        raise ValueError(f'Unknown DB type: {options["db_type"]}')
+        except Exception as e:
+            self.logger.add('Can\'t initialise DB: ' + str(e))
 
     def query_from_file(self, path: str = '') -> None:
         """ Execute DB query from file """
@@ -70,6 +69,14 @@ class DeployTool:
             self.__make_config_file(src, dest)
         except Exception as e:
             self.logger.add(f'Can\'t build config {dest}: ' + str(e))
+
+    def __db_factory(self, options: dict) -> object:
+        """ DB factory """
+
+        if options['db_type'] == 'pgsql':
+            return DbPostgres(options, self.logger)
+
+        raise ValueError(f'Unknown DB type: {options["db_type"]}')
 
     def __init_options(self, params: dict) -> None:
         """ Options initialisation """

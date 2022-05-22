@@ -2,7 +2,6 @@ from src.deploy_tool.db_postgres import DbPostgres
 from src.deploy_tool.deploy_tool import DeployTool
 from src.deploy_tool.macros import Macros
 import argparse
-import pytest
 import os
 
 
@@ -38,17 +37,18 @@ class TestDeployTool():
 
         deploy_tool = self.deploy_tool
         options = self.options
-
         mocker.patch.object(
             deploy_tool,
             '_DeployTool__get_options',
             return_value=options
         )
+        mocker.patch.object(deploy_tool.logger, 'add', autospec=True)
 
         # Unknown DB type
-        with pytest.raises(ValueError) as exc_info:
-            deploy_tool.init_db()
-        assert f'Unknown DB type: {options["db_type"]}' in str(exc_info.value)
+        deploy_tool.init_db()
+        deploy_tool.logger.add.assert_called_with(
+            f'Can\'t initialise DB: Unknown DB type: {options["db_type"]}'
+        )
 
         # PostgreSQL type ('pgsql')
         deploy_tool.options['db_type'] = 'pgsql'
@@ -56,6 +56,17 @@ class TestDeployTool():
         deploy_tool.init_db()
         deploy_tool._DeployTool__get_options.assert_called()
         assert deploy_tool.db == 1
+
+        # Bad initialise
+        mocker.patch.object(
+            deploy_tool,
+            '_DeployTool__db_factory',
+            side_effect=Exception("test")
+        )
+        deploy_tool.init_db()
+        deploy_tool.logger.add.assert_called_with(
+            'Can\'t initialise DB: test'
+        )
 
     def test_query_from_file(self, mocker) -> None:
         """ Test DB query from file """
