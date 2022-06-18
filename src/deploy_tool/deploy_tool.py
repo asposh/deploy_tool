@@ -1,5 +1,7 @@
 import argparse
+import copy
 import os
+from typing import Optional
 from .db_postgres import DbPostgres
 from .logger import Logger
 from .macros import Macros
@@ -21,13 +23,11 @@ class DeployTool:
         'mount_dir',
     ]
 
-    ENCODING = 'utf-8'
+    ENCODING: str = 'utf-8'
 
-    def __init__(self, params: dict = {}):
+    def __init__(self, params: Optional[dict] = None):
         self.db = None
-        self.options = {}
         self.logger = Logger()
-        self.options_available = DeployTool.DEFAULT_CLI_OPTIONS
 
         # Options initialisation
         self.__init_options(params)
@@ -78,8 +78,14 @@ class DeployTool:
 
         raise ValueError(f'Unknown DB type: {options["db_type"]}')
 
-    def __init_options(self, params: dict) -> None:
+    def __init_options(self, params: Optional[dict] = None) -> None:
         """ Options initialisation """
+
+        self.options = {}
+        self.options_available = copy.deepcopy(DeployTool.DEFAULT_CLI_OPTIONS)
+
+        if not params:
+            return
 
         if 'options' in params:
             self.options = params['options']
